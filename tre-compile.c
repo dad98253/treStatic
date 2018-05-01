@@ -14,7 +14,7 @@
 
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include "config.h"
 #endif /* HAVE_CONFIG_H */
 #include <stdio.h>
 #include <assert.h>
@@ -2244,7 +2244,7 @@ tre_version(void)
 #ifdef WINDOZE
       (void) _snprintf(str, sizeof(str), "TRE %s (BSD)", version);
 #else
-      (void) snprintf(str, sizeof(str), "TRE %s (BSD)", version);
+      (void) sprintf(str, "TRE %s (BSD)", version);
 #endif
     }
   return str;

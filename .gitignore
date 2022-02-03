@@ -34,6 +34,7 @@ aclocal.m4
 configure
 /.libs/
 Makefile
+/m4/Makefile
 config.h.in
 tre-config.h.in
 config.log

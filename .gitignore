@@ -1,5 +1,6 @@
 .project
 .cproject
+/.settings/
 makefile
 objects.mk
 sources.mk
@@ -27,7 +28,6 @@ vc60.*
 depcomp
 libtool
 ltmain.sh
-/m4/
 Makefile.in
 aclocal.m4
 /autom4te.cache/
@@ -35,8 +35,10 @@ configure
 /.libs/
 Makefile
 config.h.in
+tre-config.h.in
 config.log
 config.status
 *.la
 *.lo
 stamp-h1
+stamp-h2

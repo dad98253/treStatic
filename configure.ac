@@ -17,8 +17,9 @@ AM_INIT_AUTOMAKE
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
-AC_PROG_LN_S
-AC_PROG_MAKE_SET
+AM_PROG_CC_C_O
+#AC_PROG_LN_S
+#AC_PROG_MAKE_SET
 #AC_PROG_RANLIB
 
 tre_version_1=`echo $PACKAGE_VERSION | cut -d . -f 1`
@@ -32,6 +33,12 @@ AC_DEFINE_UNQUOTED(TRE_VERSION_3, $tre_version_3, [ TRE version level 3. ])
 AC_SUBST(TRE_VERSION, $tre_version)
 
 # Options
+AC_ARG_ENABLE(profile,
+  AC_HELP_STRING([--enable-profile],
+                 [enable profiling with gprof @<:@default=disabled@:>@]),
+  [ tre_profile="$enableval" ],
+  [ tre_profile="no" ])
+
 AC_ARG_ENABLE(debug,
   AC_HELP_STRING(
     [--enable-debug],
@@ -47,6 +54,12 @@ else
   AC_DEFINE(NDEBUG, 1, [ Define if you want to disable debug assertions. ])
 fi
 
+if test "$tre_profile" = "yes"; then
+  CFLAGS="$CFLAGS -pg"
+  AM_CONDITIONAL(TRE_PROFILE, true)
+else
+  AM_CONDITIONAL(TRE_PROFILE, false)
+fi
 
 AC_ARG_ENABLE(warnings,
   AC_HELP_STRING(
@@ -82,19 +95,184 @@ else
   tre_agrep="no (requires approximate matching)"
 fi
 
+if test "$tre_agrep" = "yes"; then
+  AM_CONDITIONAL(TRE_AGREP, true)
+else
+  AM_CONDITIONAL(TRE_AGREP, false)
+fi
+
+
 # Checks for compiler characteristics.
 AC_C_CONST
 AC_C_INLINE
 
 # Checks for libraries.
 
-# Checks for header files.
+# Checks for headers, functions, types, and macros
 AC_FUNC_ALLOCA
 AC_CHECK_HEADERS([libintl.h malloc.h])
 AC_DEFINE(_GNU_SOURCE, 1, [ Define to enable GNU extensions in glibc ])
 AC_HEADER_STDC
 
-AC_DEFINE([TRE_REGEX_T_FIELD], [value],[ Define to a dummy field in the regex_t struct ])
+AC_ARG_WITH(alloca,
+  AC_HELP_STRING(
+    [--without-alloca],
+    [don't use alloca  @<:@default=use@:>@]),
+  [ tre_use_alloca="$withval" ],
+  [ tre_use_alloca="yes" ])
+if test "$tre_use_alloca" = "yes"; then
+  ALLOCA=""
+  AC_FUNC_ALLOCA
+  if test -z "$ALLOCA"; then
+    # alloca() works.
+    AC_DEFINE(TRE_USE_ALLOCA, 1,
+      [ Define if you want TRE to use alloca() instead of malloc() when
+        allocating memory needed for regexec operations. ])
+  fi
+fi
+
+AC_ARG_ENABLE(system-abi,
+  AC_HELP_STRING(
+    [--enable-system-abi],
+    [try to make TRE compatible with the system \
+regex ABI  @<:@default=disabled@:>@]),
+  [ tre_system_abi="$enableval" ],
+  [ tre_system_abi="no" ])
+
+# If we are building a version compatible with the system ABI, we need to
+# find an absolute path to the system regex.h (so it can be included from
+# TRE regex.h using `#include "/path/to/regex.h"').  Then we need to
+# find a field in the system defined regex_t struct where a pointer to
+# the compiled regex object can be stored.
+
+if test "$tre_system_abi" = "yes"; then
+  # Check that there is a system regex.h to begin with.  We may need
+  # to include sys/types.h before regex.h, so check for that first.
+  AC_CHECK_HEADERS([sys/types.h])
+  AC_CHECK_HEADERS([regex.h], [],
+    [ tre_system_abi="no (regex.h not found)" ],
+    [#if HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+])
+fi
+
+if test "$tre_system_abi" = "yes"; then
+  # Find out where system regex.h is.  This is done by running the C
+  # preprocessor and grepping its output, hopefully getting a full
+  # path to regex.h.
+  AC_MSG_CHECKING([path to system regex.h])
+  echo '#include <regex.h>' > conftest.c
+  tre_system_regex_h=`$CPP conftest.c \
+    | grep '^#[a-z]* [0-9]* "\(.*regex.h\)"' \
+    | head -1 \
+    | sed 's/^#[a-z]* [0-9]* \"\(.*\)\".*/\1/'`
+  rm -f conftest.c
+  if test -n "$tre_system_regex_h" && test -f "$tre_system_regex_h"; then
+    AC_MSG_RESULT($tre_system_regex_h)
+  else
+    AC_MSG_RESULT(unknown)
+    tre_system_abi="no (could determine path to systeg regex.h)"
+  fi
+fi
+
+if test "$tre_system_abi" = "yes"; then
+  # Find a field in the system regex_t struct where we can store a pointer.
+  # This is done by trying several names that are known to work on different
+  # systems.
+  AC_MSG_CHECKING([for a usable field for a pointer in regex_t])
+  tre_regex_t_field=""
+  for field in buffer re_comp __re_comp __reg_expression \
+               re_g "re_pad@<:@0@:>@"; do
+    if test -z "$tre_regex_t_field"; then
+      AC_COMPILE_IFELSE(
+        [ AC_LANG_PROGRAM([
+#include <sys/types.h>
+#include <regex.h>
+      ],
+      [
+    regex_t foo;
+    void *bar = foo.$field;
+    foo.$field = bar;
+      ])],
+        [ AC_MSG_RESULT($field)
+          tre_regex_t_field="$field" ])
+    fi
+  done
+  if test -z "$tre_regex_t_field"; then
+    AC_MSG_RESULT(no)
+    tre_system_abi="no (unknown regex_t contents, report to \
+$PACKAGE_BUGREPORT)"
+  fi
+fi
+
+if test "$tre_system_abi" = "yes"; then
+  # So far, so good.  Now check if we can redefine the system regex
+  # functions.  For example, the system headers may define the
+  # standard functions as static wrapper functions (like on IRIX)
+  # which prevents redefining them later.
+
+  # IRIX has some macro magic which we need to turn off.
+  AC_DEFINE(_REGCOMP_INTERNAL, 1, [ Define on IRIX ])
+  AC_MSG_CHECKING([if POSIX regex functions can be redefined])
+  AC_COMPILE_IFELSE(
+        [ AC_LANG_PROGRAM([
+#include <sys/types.h>
+#include <regex.h>
+
+int
+regcomp(regex_t *preg, const char *regex, int cflags)
+{
+  return 0;
+}
+void
+regfree(regex_t *preg)
+{
+  return;
+}
+int
+regexec(const regex_t *preg, const char *str,
+        size_t nmatch, regmatch_t pmatch@<:@@:>@, int eflags)
+{
+  return 0;
+}
+size_t
+regerror(int errcode, const regex_t *preg, char *errbuf,
+	 size_t errbuf_size)
+{
+  return 0;
+}
+      ])],
+        [ AC_MSG_RESULT(yes)
+          tre_system_abi="yes" ],
+        [ AC_MSG_RESULT(no)
+          tre_system_abi="no (unable to redefine system functions)" ])
+fi
+
+if test "$tre_system_abi" = "yes"; then
+  # Great, everything seems to be OK for ABI compatibility.  Just check
+  # some additional types that may or may not be defined, and set up
+  # variables to enable ABI compatibility in regex.h.
+
+  AC_CHECK_TYPES([reg_errcode_t],,,[
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif /* HAVE_SYS_TYPES_H */
+#ifdef HAVE_REGEX_H
+#include <regex.h>
+#endif /* HAVE_REGEX_H */
+    ])
+
+  AC_DEFINE(TRE_USE_SYSTEM_REGEX_H, 1,
+    [ Define to include the system regex.h from TRE regex.h ])
+  AC_DEFINE_UNQUOTED(TRE_SYSTEM_REGEX_H_PATH, "$tre_system_regex_h",
+    [ Define to the absolute path to the system regex.h ])
+  AC_DEFINE_UNQUOTED(TRE_REGEX_T_FIELD, $tre_regex_t_field,
+    [ Define to a field in the regex_t struct where TRE should store a
+      pointer to the internal tre_tnfa_t structure ])
+else
+  AC_DEFINE([TRE_REGEX_T_FIELD], [value],[ Define to a dummy field in the regex_t struct ])
+fi
 
 AC_CHECK_FUNCS([isascii isblank])
 
@@ -130,7 +308,6 @@ AC_HELP_STRING(
   [ tre_libutf8="detect"
     tre_libutf8_dirs="none /usr /usr/local"
     tre_libutf8_libs="none -lutf8" ])
-
 
 
 if test "$tre_enable_wchar" != "no"; then
@@ -269,7 +446,6 @@ if test "$tre_enable_wchar" != "no"; then
   fi
 fi
 
-
 case $host in
   *-mingw*)
     # wcsrtombs and wcstombs don't seem to work at all on MinGW.
@@ -362,12 +538,13 @@ AC_C_INLINE
 AC_TYPE_SIZE_T
 
 # Checks for library functions.
-AC_CHECK_FUNCS([memchr memset strchr strerror strtol])
+AC_CHECK_FUNCS([memchr memset strchr strerror strtol memcpy])
 
+# Output files
 AC_CONFIG_HEADERS([config.h tre-config.h])
-#AC_CONFIG_HEADERS([tre-config.h])
 AC_CONFIG_FILES([
 Makefile
+m4/Makefile
 ])
 
 AC_OUTPUT

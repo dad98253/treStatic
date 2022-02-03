@@ -1,4 +1,7 @@
 ## Process this file with automake to produce Makefile.in
+
+SUBDIRS = utils
+
 lib_LTLIBRARIES = libtre.la
 libtre_la_LDFLAGS = -no-undefined -version-info 5:0:0 $(LDFLAGS)
 libtre_la_LIBADD = $(LTLIBINTL)
@@ -27,6 +30,8 @@ libtre_la_SOURCES =             \
 
 
 ACLOCAL_AMFLAGS = -I m4
+
+AC_CONFIG_AUX_DIR = utils
 
 
 clean-local:

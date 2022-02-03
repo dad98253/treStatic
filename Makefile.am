@@ -26,13 +26,6 @@ libtre_la_SOURCES =             \
         regerror.c
 
 
-
-
-
-
-
-
-
 ACLOCAL_AMFLAGS = -I m4
 
 

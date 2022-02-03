@@ -32,4 +32,11 @@ Makefile.in
 aclocal.m4
 /autom4te.cache/
 configure
-
+/.libs/
+Makefile
+config.h.in
+config.log
+config.status
+*.la
+*.lo
+stamp-h1

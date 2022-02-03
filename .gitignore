@@ -23,3 +23,7 @@ subdir.mk
 *.plg
 vc60.*
 *.res
+/.deps/
+depcomp
+libtool
+ltmain.sh

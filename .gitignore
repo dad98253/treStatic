@@ -35,7 +35,6 @@ configure
 Makefile
 /m4/Makefile
 config.h.in
-tre-config.h.in
 config.log
 config.status
 *.la

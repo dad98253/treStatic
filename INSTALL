@@ -1,0 +1,26 @@
+This library is customized for use with the passwin program. It should not be installed in
+any system directories. passwin will be configured to link ot it directly from its build
+folder.
+
+To configure and build it:
+git clone ...
+cd treStatic
+
+autoreconf
+./configure --disable-wchar --disable-agrep  --disable-multibyte
+make
+
+Note that the first time you run autoreconf, you will likely get messages about missine files.
+Just follow the instuctions in the error message to use automake to create the missing files.
+Then, re-run autoreconf and continue...
+
+to clean just the object and lib files:
+make clean
+
+to also clean the autoconf/automake files:
+make distclean
+
+to create a package file (to backup or move you work someplace else):
+make dist
+
+

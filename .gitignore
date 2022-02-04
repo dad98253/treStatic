@@ -27,7 +27,6 @@ vc60.*
 /.deps/
 depcomp
 libtool
-ltmain.sh
 Makefile.in
 aclocal.m4
 /autom4te.cache/

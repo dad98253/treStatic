@@ -43,6 +43,6 @@ config.status
 *.lo
 stamp-h1
 stamp-h2
-config.h
-tre-config.h
+/config.h
+/tre-config.h
 

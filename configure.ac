@@ -545,6 +545,7 @@ AC_CONFIG_HEADERS([config.h tre-config.h])
 AC_CONFIG_FILES([
 Makefile
 m4/Makefile
+utils/Makefile
 ])
 
 AC_OUTPUT

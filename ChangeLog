@@ -1,6 +1,14 @@
+commit 8dd73a0537951ce1d1b3302b34ae1be68c00e58e
+Author: John Kuras <w7og@yahoo.com>
+Date:   Thu Feb 3 23:27:58 2022 -0800
+
+    updated ChangeLog using the new make dist-ChangeLog command
+
+M	ChangeLog
+
 commit 53273a44435746046856a1e7ef534d8d4e7c93c1
 Author: John Kuras <w7og@yahoo.com>
-Date:   Thu Feb 3 23:25:42 2022 -0800
+Date:	Thu Feb 3 23:25:42 2022 -0800
 
     deleted autonote.txt file
 

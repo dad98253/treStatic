@@ -23,4 +23,5 @@ make distclean
 to create a package file (to backup or move you work someplace else):
 make dist
 
-
+to update the ChangeLog file:
+make dist-ChangeLog

@@ -26,6 +26,7 @@ libtre_a_SOURCES =             \
         tre-stack.c             \
         regcomp.c               \
         regexec.c               \
+        tre-match-approx.c      \
         regerror.c
 
 

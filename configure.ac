@@ -10,6 +10,7 @@ AM_GNU_GETTEXT_VERSION(0.17)
 #LT_INIT([disable-shared])
 #AC_PROG_CC([gcc cl cc])
 AM_INIT_AUTOMAKE
+AX_GENERATE_CHANGELOG
 
 # Checks for programs.
 #AC_PROG_CXX

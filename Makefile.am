@@ -33,6 +33,8 @@ ACLOCAL_AMFLAGS = -I m4
 
 AC_CONFIG_AUX_DIR = utils
 
+@GENERATE_CHANGELOG_RULES@
+  dist-hook: dist-ChangeLog
 
 distclean-local:
 	@rm config.status configure config.log

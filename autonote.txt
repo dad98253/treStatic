@@ -1,5 +1,0 @@
-autoreconf
-./configure --disable-wchar --disable-agrep  --disable-multibyte
-make
-
-

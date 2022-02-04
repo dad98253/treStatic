@@ -34,7 +34,7 @@ ACLOCAL_AMFLAGS = -I m4
 AC_CONFIG_AUX_DIR = utils
 
 
-clean-local:
+distclean-local:
 	@rm config.status configure config.log
 	@rm Makefile
 	@rm -r autom4te.cache/

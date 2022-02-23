@@ -14,6 +14,7 @@ noinst_HEADERS =                \
         tre-mem.h               \
         tre-parse.h             \
         tre-stack.h             \
+	tre.h			\
         xmalloc.h
 
 libtre_a_SOURCES =             \

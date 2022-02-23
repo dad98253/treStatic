@@ -39,8 +39,12 @@ config.log
 config.status
 *.la
 *.lo
-stamp-h1
-stamp-h2
 /config.h
 /tre-config.h
-
+*.tar
+*.gz
+/utils/Makefile
+stamp-h*
+config.h.in~
+utils/config.rpath~
+/po/

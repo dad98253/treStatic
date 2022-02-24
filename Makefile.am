@@ -2,6 +2,8 @@
 
 SUBDIRS = utils
 
+EXTRA_DIST = m4/Makefile.in
+
 noinst_LIBRARIES = libtre.a
 #libtre_a_LDFLAGS = -no-undefined -version-info 5:0:0 $(LDFLAGS)
 libtre_a_LIBADD = $(LIBINTL)

@@ -51,9 +51,13 @@ if test "$tre_debug" = "yes"; then
   AM_CONDITIONAL(TRE_DEBUG, true)
   AC_DEFINE(TRE_DEBUG, 1,
     [ Define if you want TRE to print debug messages to stdout. ])
+  CFLAGS="$CFLAGS -g"
+  CXXFLAGS="$CXXFLAGS -g"
 else
   AM_CONDITIONAL(TRE_DEBUG, false)
   AC_DEFINE(NDEBUG, 1, [ Define if you want to disable debug assertions. ])
+  CFLAGS="-O2"
+  CXXFLAGS="-O2"
 fi
 
 if test "$tre_profile" = "yes"; then
